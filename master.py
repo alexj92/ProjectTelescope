@@ -119,7 +119,7 @@ except Exception, e:
 
 try:
     MCONN = pymongo.Connection(*MCONNECTION_DATA['connection'])[MCONNECTION_DATA['database']]
-except Exception:
+except Exception, e:
     logging.exception("MongoDB connection failed! Please check telescope_config.py")
     raise e
 
@@ -157,10 +157,11 @@ def datagrab_users():
         res = c.fetchone()
         if res is None:
             break
-        u = {}
-        u['user_id'] = res['ID']
-        u['can_leech'] = True if res['can_leech'] == 1 else False
-        u['_id'] = res['torrent_pass']
+        u = {
+            'user_id': res['ID'],
+            'can_leech': True if res['can_leech'] == 1 else False,
+            '_id': res['torrent_pass']
+        }
         new_users.append(u)
     MCONN.users.remove()
     MCONN.users.insert(new_users)

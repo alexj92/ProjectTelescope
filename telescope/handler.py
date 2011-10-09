@@ -2,15 +2,18 @@
 This is the core HTTP handler of Telescope.
 """
 
-import  logging, bottle
+import  logging
+from bottle import route, request
 import datetime, random
 import socket, struct
-from telescope.errors import *
-from telescope.utilities import *
+import telescope
+from telescope.errors import REASON_UNREGISTERED_TORRENT, REASON_LEECHING_FORBIDDEN
+from telescope.models import Peer
+import telescope.utilities as util
 
 STORAGE = telescope.STORAGE
 
-@bottle.route('/')
+@route('/')
 def index():
     """
     Default / route, in case someone decides to navigate to the tracker root.
@@ -18,11 +21,12 @@ def index():
     return 'There is nothing here.'
 
 
-@bottle.route('/:key/scrape')
-@bottle.route('/:key/scrape/')
-@check_key
-@required_params(['info_hash'])
-@check_params(['info_hash'])
+#noinspection PyUnusedLocal
+@route('/:key/scrape')
+@route('/:key/scrape/')
+@util.check_key
+@util.required_params(['info_hash'])
+@util.check_params(['info_hash'])
 def scrape(user):
     """
     Handle torrent scraping
@@ -30,41 +34,40 @@ def scrape(user):
     pass
 
 
-@bottle.route('/:key/announce/')
-@bottle.route('/:key/announce')
-@check_key
-@required_params(['info_hash', 'peer_id', 'left', 'uploaded', 'downloaded', 'port'])
-@check_params(['info_hash', 'peer_id', 'numwant'])
+@route('/:key/announce/')
+@route('/:key/announce')
+@util.check_key
+@util.required_params(['info_hash', 'peer_id', 'left', 'uploaded', 'downloaded', 'port'])
+@util.check_params(['info_hash', 'peer_id', 'numwant'])
 def announce(user):
     """
     Handle announces. This is the main, most important pieces, of Telescope.
     """
     time_now = datetime.datetime.now()
 
-    q = bottle.request.query
+    q = request.query
     update_torrent_in_db = False
     # do we track this torrent?
     torrent = STORAGE.lookup_torrent(q['info_hash'])
     if not torrent:
         # we don't
-        fail(REASON_UNREGISTERED_TORRENT)
+        util.fail(REASON_UNREGISTERED_TORRENT)
 
     # we do!
 
     # is leeching off?
     if long(q['left']) > 0:
         if not user.can_leech:
-            fail(REASON_LEECHING_FORBIDDEN)
+            util.fail(REASON_LEECHING_FORBIDDEN)
 
     # now find the peer
     new_peer = False
-    peer = None
     p_id = q['peer_id'].encode('hex')
     if p_id not in torrent.peers.keys():
         new_peer = True
         peer = Peer()
     else:
-        peer = conjure_peer(torrent.peers[p_id])
+        peer = util.conjure_peer(torrent.peers[p_id])
         peer.last_announced = time_now
 
     # as yet, no download/upload speed
@@ -85,7 +88,7 @@ def announce(user):
         peer.downloaded = int(q['downloaded'])
         peer.left = int(q['left'])
         peer.first_announced = peer.last_announced = time_now
-        peer.ua = bottle.request.headers.get('User-Agent', 'Lookup-Failed/1.0')
+        peer.ua = request.headers.get('User-Agent', 'Lookup-Failed/1.0')
         peer.announces = 1
     else:
         # otherwise, just increment the announce count
@@ -131,7 +134,7 @@ def announce(user):
 
     # this section handles storing their IP
     skyport = long(q['port'])
-    skyip = bottle.request.environ.get('REMOTE_ADDR')
+    skyip = request.environ.get('REMOTE_ADDR')
     if 'ip' in q.keys():
         skyip = q['ip']
     elif 'ipv4' in q.keys():
@@ -232,7 +235,7 @@ def format_compact(peer, torrent, num):
     peers = []
     peers_v6 = []
     for rpeer in rawpeers:
-        rpeer = conjure_peer(torrent.peers[rpeer])
+        rpeer = util.conjure_peer(torrent.peers[rpeer])
         if len(rpeer.ipport) < 18:
             peers.append(rpeer.ipport)
             if rpeer.ipv6port is not None:
