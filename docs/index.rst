@@ -11,13 +11,14 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   concept
+   configuration
+   storage
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-* :ref:`Concept behind Telescope and why it exists <concept>`
-* :ref:`Setting up Telescope <configuration>`
 
