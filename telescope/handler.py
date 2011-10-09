@@ -2,7 +2,7 @@
 This is the core HTTP handler of Telescope.
 """
 
-import  logging
+import logging
 from bottle import route, request
 import datetime, random
 import socket, struct
@@ -69,6 +69,11 @@ def announce(user):
     else:
         peer = util.conjure_peer(torrent.peers[p_id])
         peer.last_announced = time_now
+
+    tas = telescope.plugins.abstract.TelescopeAnnounceState(user=user, torrent=torrent, peer=peer)
+    plugs = telescope.PLUGIN_MANAGER.getPluginsOfCategory('AnnouncePlugin')
+    for plug in plugs:
+        plug.start_announce(tas)
 
     # as yet, no download/upload speed
     peer.upspeed = peer.downspeed = 0
@@ -206,6 +211,10 @@ def announce(user):
 
     # record the peer to storage...
     STORAGE.record_peer(peer, torrent, user, active)
+
+    plugEventStr = q['event'] if ('event' in q.keys()) else 'nada'
+    for plug in plugs:
+        plug.end_announce(tas, uploaded=uploaded, downloaded=downloaded, left=left, event=plugEventStr)
 
     # build the bencoded string
     return "d8:intervali%de12:min intervali%de5:peers%s8:completei%de10:incompletei%de10:downloadedi%dee" % (

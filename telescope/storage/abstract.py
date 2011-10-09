@@ -7,6 +7,9 @@ class StorageAbstract(object):
     Abstract class for Telescope's storage system
     """
 
+    def __init__(self, config):
+        raise NotImplementedError, "You need to override the __init__ function"
+
     def lookup_user(self, key):
         """
         Find a user by it's database ID.
@@ -39,13 +42,13 @@ class StorageAbstract(object):
         """
         raise NotImplementedError, "record_snatch has not been defined"
 
-    def record_peer(self, peer, torrent, user, active):
+    def record_torrent(self, torrent, snatched):
         """
         Record an updated torrent into storage.
         """
         raise NotImplementedError, "record_torrent has not been defined"
 
-    def record_peer(self, peer, torrent, user):
+    def record_peer(self, peer, torrent, user, active):
         """
         Record a peer's information.
         """
