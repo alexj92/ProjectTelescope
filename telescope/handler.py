@@ -68,6 +68,7 @@ def announce(user):
         peer = Peer()
     else:
         peer = util.conjure_peer(torrent.peers[p_id])
+        peer.last_but_once_announced = peer.last_announced
         peer.last_announced = time_now
 
     tas = telescope.plugins.abstract.TelescopeAnnounceState(user=user, torrent=torrent, peer=peer)
@@ -94,7 +95,7 @@ def announce(user):
         peer.uploaded = int(q['uploaded'])
         peer.downloaded = int(q['downloaded'])
         peer.left = int(q['left'])
-        peer.first_announced = peer.last_announced = time_now
+        peer.first_announced = peer.last_announced = peer.last_but_once_announced = time_now
         peer.ua = request.headers.get('User-Agent', 'Lookup-Failed/1.0')
         peer.announces = 1
     else:

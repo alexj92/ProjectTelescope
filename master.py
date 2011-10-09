@@ -2,6 +2,7 @@
 This is the ProjectTelescope master process. This is only required with the GazelleMongo storage backend.
 """
 
+import os
 import pymongo
 import struct, socket
 import time, logging
@@ -9,6 +10,8 @@ import pymongo.binary, pymongo.code
 import MySQLdb
 import MySQLdb.cursors
 import datetime
+
+logging.basicConfig(level=logging.DEBUG)
 
 class Struct:
     """
@@ -351,6 +354,28 @@ def perform_hedgetrimming():
     end = datetime.datetime.now()
     logging.info("Pruned %d peers from %d torrents in %s." % (pruneCount, prunedTorrents, format_interval(end - start)))
 
+# plugin system
+from yapsy.PluginManager import PluginManager
+import telescope.plugins.abstract
+# Build the manager
+pluginManager = PluginManager()
+# Tell it the default place(s) where to find plugins
+myPath = os.path.dirname(__file__)
+modulePath = os.path.join(os.path.join(myPath, "telescope"), "plugins")
+pluginManager.setPluginPlaces([modulePath])
+# Tell it about our categories
+pluginManager.setCategoriesFilter({
+    'MasterPlugin': telescope.plugins.abstract.ITelescopeMasterPlugin
+})
+# Load all plugins
+pluginManager.collectPlugins()
+
+# Activate all loaded plugins
+for pluginInfo in pluginManager.getAllPlugins():
+   pluginManager.activatePluginByName(pluginInfo.name)
+
+plugs = pluginManager.getPluginsOfCategory("MasterPlugin")
+
 
 logging.info("Performing start-up datagrab")
 datagrab()
@@ -359,8 +384,14 @@ i = 0
 
 while True:
     time.sleep(10)
+    logging.info("Running plugins - pending")
+    for plug in plugs:
+        plug.plugin_object.pending_cycle(CONN, MCONN)
     if i > 20:
         i = 0
+        logging.info("Running plugins - cleanup")
+        for plug in plugs:
+            plug.plugin_object.cleanup_cycle(CONN, MCONN)
         logging.info("Performing datagrab")
         datagrab()
         logging.info("Running pending actions")

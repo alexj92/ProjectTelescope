@@ -33,3 +33,16 @@ class ITelescopeAnnouncePlugin(IPlugin):
         Called immediately before the final result is sent.
         """
         return
+
+class ITelescopeMasterPlugin(IPlugin):
+    def pending_cycle(self, dbo, dbb):
+        """
+        Called when the master goes through its pending action cycle.
+        """
+        return
+
+    def cleanup_cycle(self, dbo, dbb):
+        """
+        Called when the master goes through its cleanup cycle.
+        """
+        return
