@@ -18,3 +18,6 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+* :ref:`Concept behind Telescope and why it exists <concept>`
+* :ref:`Setting up Telescope <configuration>`
+
