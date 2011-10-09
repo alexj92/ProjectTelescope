@@ -4,8 +4,12 @@ This allows fast debugging of ProjectTelescope.
 It is NOT suitable for running in production. Don't try it, please.
 """
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import telescope
 import bottle
+
 
 application = telescope.go()
 bottle.debug()

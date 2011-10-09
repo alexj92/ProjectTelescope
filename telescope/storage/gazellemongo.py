@@ -33,9 +33,9 @@ class StorageGazelle(StorageAbstract):
         logging.debug("Preparing to connect to Mongo!")
         self.MONGO_HANDLE = pymongo.Connection(*self.MONGO_CONFIG['connection'])
         self.MONGO_HANDLE = self.MONGO_HANDLE[self.MONGO_CONFIG['database']]
-        wl_cursor = self.MONGO_HANDLE.whitelist.find({'fields': ['peer_id']})
+        wl_cursor = self.MONGO_HANDLE.whitelist.find()
         for peer_id in wl_cursor:
-            self.WHITELIST.append(peer_id)
+            self.WHITELIST.append(peer_id['peer_id'])
         logging.debug("Loaded %d items from the whitelist." % (len(self.WHITELIST),))
         logging.debug("Connection complete")
 

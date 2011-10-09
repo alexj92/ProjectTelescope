@@ -73,13 +73,15 @@ def announce(user):
     tas = telescope.plugins.abstract.TelescopeAnnounceState(user=user, torrent=torrent, peer=peer)
     plugs = telescope.PLUGIN_MANAGER.getPluginsOfCategory('AnnouncePlugin')
     for plug in plugs:
-        plug.start_announce(tas)
+        plug.plugin_object.start_announce(tas)
 
     # as yet, no download/upload speed
     peer.upspeed = peer.downspeed = 0
 
     uploaded = int(q['uploaded'])
     downloaded = int(q['downloaded'])
+    upload_change = 0
+    download_change = 0
     if new_peer or (
         'event' in q.keys() and q['event'] == "started") or uploaded < peer.uploaded or downloaded < peer.downloaded:
         # if they're new,
@@ -99,8 +101,6 @@ def announce(user):
         # otherwise, just increment the announce count
         peer.announces += 1
 
-        upload_change = 0
-        download_change = 0
         #print "Previous upload was %d, previous download was %d" % (peer.uploaded, peer.downloaded)
         if uploaded != peer.uploaded:
             # if the upload isn't the same, then calculate delta uploaded
@@ -213,8 +213,9 @@ def announce(user):
     STORAGE.record_peer(peer, torrent, user, active)
 
     plugEventStr = q['event'] if ('event' in q.keys()) else 'nada'
+    tas = telescope.plugins.abstract.TelescopeAnnounceState(user=user, torrent=torrent, peer=peer, event=plugEventStr, upload_change=upload_change, download_change=download_change)
     for plug in plugs:
-        plug.end_announce(tas, uploaded=uploaded, downloaded=downloaded, left=left, event=plugEventStr)
+        plug.plugin_object.end_announce(tas)
 
     # build the bencoded string
     return "d8:intervali%de12:min intervali%de5:peers%s8:completei%de10:incompletei%de10:downloadedi%dee" % (

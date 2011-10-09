@@ -222,7 +222,7 @@ def datagrab_whitelist():
         res = c.fetchone()
         if res is None:
             break
-        new_whitelist.append({'peer_id': res['peer_id']})
+        new_whitelist.append({'peer_id': pymongo.binary.Binary(res['peer_id'])})
     MCONN.whitelist.remove()
     MCONN.whitelist.insert(new_whitelist)
     end = datetime.datetime.now()
