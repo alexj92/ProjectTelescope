@@ -4,6 +4,7 @@ Telescope's Storage System
 The storage system is completely run by the telescope.storage module.
 
 The abstract version of the storage engine looks like this:
+
 .. autoclass:: telescope.storage.abstract.StorageAbstract
    :members:
 

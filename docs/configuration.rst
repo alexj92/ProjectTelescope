@@ -7,6 +7,7 @@ Getting the bits together
 -------------------------
 
 This is my recommended Telescope setup:
+
 * `Nginx <http://nginx.org/>` (version with built-in `uWSGI <http://projects.unbit.it/uwsgi/>` support)
 * `uWSGI <http://projects.unbit.it/uwsgi/>`
 * `Supervisor <http://supervisord.org/>`
@@ -79,7 +80,9 @@ Set up nginx to talk to Telescope:
 Starting it up
 ~~~~~~~~~~~~~~
 Now simply start up:
+
 1. MySQL
 2. MongoDB
 3. Supervisor
+
 ...and you're done!
