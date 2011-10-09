@@ -1,3 +1,9 @@
+"""
+StorageGazelle provides the Telescope <-> Mongo <-> Gazelle system.
+
+Applicable documentation for many of the fields can be found in the abstract.py file
+"""
+
 import pymongo, logging
 import pymongo.binary
 from telescope.storage.abstract import StorageAbstract
@@ -11,17 +17,17 @@ class StorageGazelle(StorageAbstract):
         self.MONGO_CONFIG = config
 
     def lookup_user(self, key):
-        mh = self.MONGO_HANDLE.users.find_one({"_id":key})
+        mh = self.MONGO_HANDLE.users.find_one({"_id": key})
         if mh is None:
             return AnonymousUser()
         return User(**mh)
-    
+
     def lookup_torrent(self, key):
-        mh = self.MONGO_HANDLE.torrents.find_one({"_id":key.encode("hex")})
+        mh = self.MONGO_HANDLE.torrents.find_one({"_id": key.encode("hex")})
         if mh is None:
             return False
         return Torrent(**mh)
-   
+
     # Loading data
     def load_data(self):
         logging.debug("Preparing to connect to Mongo!")
@@ -32,14 +38,13 @@ class StorageGazelle(StorageAbstract):
             self.WHITELIST.append(peer_id)
         logging.debug("Loaded %d items from the whitelist." % (len(self.WHITELIST),))
         logging.debug("Connection complete")
-        
+
     def check_peer(self, nam):
-        return True
         for thing in self.WHITELIST:
             if nam.startswith(thing):
                 return True
         return False
-    
+
     def record_snatch(self, user, torrent, peer, time_now):
         insertObj = {
             'user_id': user.user_id,
@@ -51,7 +56,8 @@ class StorageGazelle(StorageAbstract):
 
     def record_torrent(self, torrent, snatched):
         torrent.last_flushed = datetime.datetime.now()
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, { '$set': { 'last_flushed': torrent.last_flushed } })
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
+                {'$set': {'last_flushed': torrent.last_flushed}})
         insertObj = {
             'torrent_id': torrent.torrent_id,
             'seeders': len(torrent.seeders),
@@ -91,8 +97,9 @@ class StorageGazelle(StorageAbstract):
 
     def torrent_add_peer(self, torrent, peer, seeder):
         logging.debug("Adding new peer to torrent %s" % (torrent.info_hash.encode('hex'),))
-        perfm = { "$set": { "peers.%s" % (peer.peer_id.encode('hex')): peer.to_dict() }, "$addToSet": { ("seeders" if seeder else "leechers"): peer.peer_id.encode('hex') } }
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, perfm)
+        perfm = {"$set": {"peers.%s" % (peer.peer_id.encode('hex')): peer.to_dict()},
+                 "$addToSet": {("seeders" if seeder else "leechers"): peer.peer_id.encode('hex')}}
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, perfm)
 
     def torrent_flip_peer(self, torrent, peer):
         addTo = "seeders"
@@ -100,16 +107,19 @@ class StorageGazelle(StorageAbstract):
         if peer.left > 0:
             addTo = "leechers"
             delFrom = "seeders"
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, { "$pullAll": { delFrom: [peer.peer_id.encode('hex')] }, "$addToSet": { addTo: peer.peer_id.encode('hex') } })
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
+                {"$pullAll": {delFrom: [peer.peer_id.encode('hex')]}, "$addToSet": {addTo: peer.peer_id.encode('hex')}})
 
     def torrent_del_peer(self, torrent, peer):
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, { "$unset": { "peers.%s" % (peer.peer_id.encode('hex')) : 1 }, "$pullAll": { "seeders": [peer.peer_id.encode('hex')], "leechers": [peer.peer_id.encode('hex')] } })
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
+                {"$unset": {"peers.%s" % (peer.peer_id.encode('hex')): 1},
+                 "$pullAll": {"seeders": [peer.peer_id.encode('hex')], "leechers": [peer.peer_id.encode('hex')]}})
 
     def torrent_increment_balance(self, torrent, howmuch):
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, { "$inc": { "balance" : howmuch } })
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, {"$inc": {"balance": howmuch}})
 
     def torrent_increment_completed(self, torrent):
-        self.MONGO_HANDLE.torrents.update( { '_id': torrent.info_hash.encode('hex') }, { "$inc": { "completed" : 1 } })
+        self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, {"$inc": {"completed": 1}})
 
     def encode_binary(self, inp):
         return pymongo.binary.Binary(inp)

@@ -1,3 +1,9 @@
+"""
+This allows fast debugging of ProjectTelescope.
+
+It is NOT suitable for running in production. Don't try it, please.
+"""
+
 import telescope
 import bottle
 

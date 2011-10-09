@@ -1,3 +1,7 @@
+"""
+This file defines all the error codes and error messages used in Telescope.
+"""
+
 REASON_BAD_PASSKEY = 10001
 REASON_NO_PASSKEY = 10002
 REASON_LEECHING_FORBIDDEN = 10003
@@ -24,7 +28,7 @@ REASONS = {
     REASON_REQUEST_BAD_INFO_HASH: 'Bad info_hash provided',
     REASON_REQUEST_BAD_PEER_ID: 'Bad peer_id provided',
     REASON_REQUEST_BAD_NUMWANT: 'numwant must be less than 250',
-}
+    }
 
 REASONS_CODE = {
     REASON_UNREGISTERED_TORRENT: 200,
@@ -34,4 +38,4 @@ REASONS_CODE = {
     REASON_REQUEST_BAD_INFO_HASH: 150,
     REASON_REQUEST_BAD_PEER_ID: 151,
     REASON_REQUEST_BAD_NUMWANT: 152,
-}
+    }
