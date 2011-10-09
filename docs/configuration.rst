@@ -8,10 +8,15 @@ Getting the bits together
 
 This is my recommended Telescope setup:
 
-* `Nginx <http://nginx.org/>` (version with built-in `uWSGI <http://projects.unbit.it/uwsgi/>` support)
-* `uWSGI <http://projects.unbit.it/uwsgi/>`
-* `Supervisor <http://supervisord.org/>`
-* `MongoDB <mongodb.org>`
+* nginx_ (version with built-in uWSGI_ support)
+* uWSGI_
+* Supervisor_
+* MongoDB_
+
+.. _Nginx: http://nginx.org/
+.. _uWSGI: http://projects.unbit.it/uwsgi/
+.. _Supervisor: http://supervisord.org/
+.. _MongoDB: http://mongodb.org
 
 Configuring Telescope
 ---------------------

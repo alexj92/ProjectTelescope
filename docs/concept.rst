@@ -14,6 +14,8 @@ What does this have for me over Ocelot?
 ---------------------------------------
 * Cleaner, more documented (like what you're reading now).
 * Greater degree of abstraction from backend storage.
-* Storage redundancy with `uWSGI <http://projects.unbit.it/uwsgi/>`.
+* Storage redundancy with uWSGI_.
 * IPv6 support (note: this doesn't require the tracker to be accessible over IPv6).
 * Supports non-compact announces (:func:`telescope.handler.format_normal`).
+
+.. _uWSGI: http://projects.unbit.it/uwsgi/
