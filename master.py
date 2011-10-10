@@ -166,8 +166,9 @@ def datagrab_users():
             '_id': res['torrent_pass']
         }
         new_users.append(u)
-    MCONN.users.remove()
-    MCONN.users.insert(new_users)
+    MCONN.users_n.drop()
+    MCONN.users_n.insert(new_users)
+    MCONN.users_n.rename('users', dropTarget=True)
     end = datetime.datetime.now()
     logging.info("User data-grab completed in %s." % (format_interval(end - start),))
     c.close()
@@ -206,8 +207,9 @@ def datagrab_torrents():
             t['seeders'] = []
             t['leechers'] = []
         new_torrents.append(t)
-    MCONN.torrents.remove()
-    MCONN.torrents.insert(new_torrents)
+    MCONN.torrents_n.drop()
+    MCONN.torrents_n.insert(new_torrents)
+    MCONN.torrents_n.rename('torrents', dropTarget=True)
     end = datetime.datetime.now()
     logging.info("Torrent data-grab completed in %s." % (format_interval(end - start),))
     c.close()
@@ -226,8 +228,9 @@ def datagrab_whitelist():
         if res is None:
             break
         new_whitelist.append({'peer_id': pymongo.binary.Binary(res['peer_id'])})
-    MCONN.whitelist.remove()
-    MCONN.whitelist.insert(new_whitelist)
+    MCONN.whitelist_n.drop()
+    MCONN.whitelist_n.insert(new_whitelist)
+    MCONN.whitelist_n.rename('whitelist', dropTarget=True)
     end = datetime.datetime.now()
     logging.info("Whitelist data-grab completed in %s." % (format_interval(end - start),))
     c.close()
