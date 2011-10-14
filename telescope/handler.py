@@ -185,7 +185,7 @@ def announce(user):
         if peer.peer_id.encode('hex') in torrent.peers.keys():
             # so remove them from the torrent
             torrent.nuke_peer(peer)
-    elif 'event' in q.keys() and q['event'] == 'completed':
+    elif ('event' in q.keys() and q['event'] == 'completed') or (peer.left == 0 and peer.peer_id.encode('hex') in torrent.leechers):
         # they've completed downloading
         snatched = True
         update_torrent_in_db = True
@@ -268,10 +268,7 @@ def format_normal(peer, torrent, num, no_peer_id=False):
     rawpeers = select_people(torrent, peer.left > 0, num)
     peers = []
     for rpeer in rawpeers:
-        if isinstance(torrent.peers[rpeer], dict):
-            rpeer = Peer(**torrent.peers[rpeer])
-        else:
-            rpeer = torrent.peers[rpeer]
+        rpeer = util.conjure_peer(torrent.peers[rpeer])
         peers.append("d2:ip%d:%s4:port%d:%s" % (len(rpeer.ip), rpeer.ip, len(rpeer.port), rpeer.port))
         if not no_peer_id:
             peers.append("2:id%d:%s" % (len(rpeer.peer_id), rpeer.peer_id))

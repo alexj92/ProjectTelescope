@@ -98,7 +98,7 @@ class StorageGazelle(StorageAbstract):
     def torrent_add_peer(self, torrent, peer, seeder):
         logging.debug("Adding new peer to torrent %s" % (torrent.info_hash.encode('hex'),))
         perfm = {"$set": {"peers.%s" % (peer.peer_id.encode('hex')): peer.to_dict()},
-                 "$addToSet": {("seeders" if seeder else "leechers"): peer.peer_id.encode('hex')}}
+                 "$push": {("seeders" if seeder else "leechers"): peer.peer_id.encode('hex')}}
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, perfm)
 
     def torrent_flip_peer(self, torrent, peer):
@@ -108,12 +108,12 @@ class StorageGazelle(StorageAbstract):
             addTo = "leechers"
             delFrom = "seeders"
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
-                {"$pullAll": {delFrom: [peer.peer_id.encode('hex')]}, "$addToSet": {addTo: peer.peer_id.encode('hex')}})
+                {"$pull": {delFrom: [peer.peer_id.encode('hex')]}, "$push": {addTo: peer.peer_id.encode('hex')}})
 
     def torrent_del_peer(self, torrent, peer):
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
                 {"$unset": {"peers.%s" % (peer.peer_id.encode('hex')): 1},
-                 "$pullAll": {"seeders": [peer.peer_id.encode('hex')], "leechers": [peer.peer_id.encode('hex')]}})
+                 "$pull": {"seeders": [peer.peer_id.encode('hex')], "leechers": [peer.peer_id.encode('hex')]}})
 
     def torrent_increment_balance(self, torrent, howmuch):
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, {"$inc": {"balance": howmuch}})
