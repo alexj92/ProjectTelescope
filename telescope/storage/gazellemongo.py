@@ -96,24 +96,26 @@ class StorageGazelle(StorageAbstract):
         self.MONGO_HANDLE.user_log.insert(insertObj)
 
     def torrent_add_peer(self, torrent, peer, seeder):
-        logging.debug("Adding new peer to torrent %s" % (torrent.info_hash.encode('hex'),))
+        logging.debug("Adding new peer %s to torrent %s" % (peer.peer_id.encode('hex'), torrent.info_hash.encode('hex'),))
         perfm = {"$set": {"peers.%s" % (peer.peer_id.encode('hex')): peer.to_dict()},
-                 "$push": {("seeders" if seeder else "leechers"): peer.peer_id.encode('hex')}}
+                 "$addToSet": {("seeders" if seeder else "leechers"): peer.peer_id.encode('hex')}}
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, perfm)
 
     def torrent_flip_peer(self, torrent, peer):
+        logging.debug("Flipping peer %s on torrent %s" % (peer.peer_id.encode('hex'), torrent.info_hash.encode('hex'),))
         addTo = "seeders"
         delFrom = "leechers"
         if peer.left > 0:
             addTo = "leechers"
             delFrom = "seeders"
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
-                {"$pull": {delFrom: [peer.peer_id.encode('hex')]}, "$push": {addTo: peer.peer_id.encode('hex')}})
+                {"$pull": {delFrom: peer.peer_id.encode('hex'), addTo: peer.peer_id.encode('hex')}, "$addToSet": {addTo: peer.peer_id.encode('hex')}})
 
     def torrent_del_peer(self, torrent, peer):
+        logging.debug("Deleting peer %s on torrent %s" % (peer.peer_id.encode('hex'), torrent.info_hash.encode('hex'),))
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')},
                 {"$unset": {"peers.%s" % (peer.peer_id.encode('hex')): 1},
-                 "$pull": {"seeders": [peer.peer_id.encode('hex')], "leechers": [peer.peer_id.encode('hex')]}})
+                 "$pull": {"seeders": peer.peer_id.encode('hex'), "leechers": peer.peer_id.encode('hex')}})
 
     def torrent_increment_balance(self, torrent, howmuch):
         self.MONGO_HANDLE.torrents.update({'_id': torrent.info_hash.encode('hex')}, {"$inc": {"balance": howmuch}})

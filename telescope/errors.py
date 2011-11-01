@@ -18,15 +18,15 @@ REASON_REQUEST_BAD_NUMWANT = 10207
 
 REASONS = {
     REASON_BAD_PASSKEY: 'Invalid passkey',
-    REASON_NO_PASSKEY: 'Passkey not provided!',
+    REASON_NO_PASSKEY: 'Passkey not provided',
     REASON_LEECHING_FORBIDDEN: 'Leeching forbidden',
-    REASON_UNREGISTERED_TORRENT: 'Unregistered torrent!',
+    REASON_UNREGISTERED_TORRENT: 'Unregistered torrent',
     REASON_REQUEST_ERROR: 'Error in provided parameters',
     REASON_REQUEST_NO_INFO_HASH: 'No info_hash provided',
     REASON_REQUEST_NO_PEER_ID: 'No peer_id provided',
     REASON_REQUEST_NO_PORT: 'No port provided',
     REASON_REQUEST_BAD_INFO_HASH: 'Bad info_hash provided',
-    REASON_REQUEST_BAD_PEER_ID: 'Bad peer_id provided',
+    REASON_REQUEST_BAD_PEER_ID: 'Bad peer_id. You are probably using a banned client. Please check http://pwnnetwork.net/rules.php?p=clients',
     REASON_REQUEST_BAD_NUMWANT: 'numwant must be less than 250',
     }
 

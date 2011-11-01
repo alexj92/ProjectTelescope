@@ -10,6 +10,7 @@ import pymongo.binary, pymongo.code
 import MySQLdb
 import MySQLdb.cursors
 import datetime
+import sys
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -180,8 +181,10 @@ def datagrab_torrents():
     """
     start = datetime.datetime.now()
     c = CONN.cursor(MySQLdb.cursors.SSDictCursor)
-    c.execute("SELECT ID, info_hash, freetorrent, snatched FROM torrents ORDER BY ID")
+    c.execute("SELECT ID, info_hash, freetorrent, snatched FROM torrents ORDER BY ID DESC")
     new_torrents = []
+    count = 0;
+    MCONN.torrents_n.drop()
     while True:
         res = c.fetchone()
         if res is None:
@@ -207,8 +210,17 @@ def datagrab_torrents():
             t['seeders'] = []
             t['leechers'] = []
         new_torrents.append(t)
-    MCONN.torrents_n.drop()
-    MCONN.torrents_n.insert(new_torrents)
+        count += 1
+        if count > 500:
+            count = 0
+            MCONN.torrents_n.insert(new_torrents, safe=True)
+            new_torrents = []
+    MCONN.torrents_n.insert(new_torrents, safe=True)
+    dc = open('/home/lukegb/torrents_found.txt','w')
+    ress = MCONN.torrents_n.find()
+    for res in ress:
+        dc.write('%s - %s\n' % (str(res['torrent_id']), res['_id']))
+    dc.close()
     MCONN.torrents_n.rename('torrents', dropTarget=True)
     end = datetime.datetime.now()
     logging.info("Torrent data-grab completed in %s." % (format_interval(end - start),))

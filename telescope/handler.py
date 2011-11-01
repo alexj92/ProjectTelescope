@@ -94,7 +94,6 @@ def announce(user):
         peer.peer_id = q['peer_id']
         peer.uploaded = int(q['uploaded'])
         peer.downloaded = int(q['downloaded'])
-        peer.left = int(q['left'])
         peer.first_announced = peer.last_announced = peer.last_but_once_announced = time_now
         peer.ua = request.headers.get('User-Agent', 'Lookup-Failed/1.0')
         peer.announces = 1
@@ -137,6 +136,8 @@ def announce(user):
                 # if they've STILL uploaded/downloaded anything,
                 # record it into storage
                 STORAGE.record_user(user, upload_change, download_change)
+
+    peer.left = int(q['left'])
 
     # this section handles storing their IP
     skyport = long(q['port'])
@@ -246,7 +247,11 @@ def format_compact(peer, torrent, num):
     peers = []
     peers_v6 = []
     for rpeer in rawpeers:
-        rpeer = util.conjure_peer(torrent.peers[rpeer])
+        try:
+            rpeer = util.conjure_peer(torrent.peers[rpeer])
+        except KeyError:
+            print "Error trying to find %s in %s!" % (rpeer, torrent.torrent_id)
+            continue
         if len(rpeer.ipport) < 18:
             peers.append(rpeer.ipport)
             if rpeer.ipv6port is not None:
